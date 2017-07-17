@@ -17,6 +17,8 @@
 package org.springframework.beans.factory.xml;
 
 /**
+ *
+ * 用于定位一个URI的处理实现类
  * Used by the {@link org.springframework.beans.factory.xml.DefaultBeanDefinitionDocumentReader} to
  * locate a {@link NamespaceHandler} implementation for a particular namespace URI.
  *

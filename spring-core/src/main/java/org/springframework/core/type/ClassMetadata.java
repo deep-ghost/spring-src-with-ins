@@ -17,6 +17,7 @@
 package org.springframework.core.type;
 
 /**
+ *  描述定义一个具体的类 不需要这个类已经加载 仅仅是为了达到匹配的目的
  * Interface that defines abstract metadata of a specific class,
  * in a form that does not require that class to be loaded yet.
  *

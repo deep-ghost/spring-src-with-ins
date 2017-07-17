@@ -50,6 +50,7 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 
 	private final BeanDefinitionRegistry registry;
 
+	// PathMatchingResourcePatternResolver
 	private ResourceLoader resourceLoader;
 
 	private ClassLoader beanClassLoader;
@@ -201,7 +202,7 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 			throw new BeanDefinitionStoreException(
 					"Cannot import bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
-
+		//ClassPathXmlApplicationContext
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {

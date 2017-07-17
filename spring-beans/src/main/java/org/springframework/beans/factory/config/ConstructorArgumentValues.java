@@ -16,21 +16,18 @@
 
 package org.springframework.beans.factory.config;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.Mergeable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
+import java.util.*;
+
 /**
+ * 阅读源码的过程中 你会发现大师们的抽象能力以及解决问题的能力
+ * 对问题的抽象
+ * 将大问题分成一个个的小问题去解决
  * Holder for constructor argument values, typically as part of a bean definition.
  *
  * <p>Supports values for a specific index in the constructor argument list

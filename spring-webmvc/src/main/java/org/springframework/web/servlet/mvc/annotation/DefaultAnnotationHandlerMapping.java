@@ -16,15 +16,6 @@
 
 package org.springframework.web.servlet.mvc.annotation;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
@@ -36,6 +27,10 @@ import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.handler.AbstractDetectingUrlHandlerMapping;
+
+import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * Implementation of the {@link org.springframework.web.servlet.HandlerMapping}
@@ -114,6 +109,7 @@ public class DefaultAnnotationHandlerMapping extends AbstractDetectingUrlHandler
 	protected String[] determineUrlsForHandler(String beanName) {
 		ApplicationContext context = getApplicationContext();
 		Class<?> handlerType = context.getType(beanName);
+		// 类或者方法上面有@RequestMapping注解
 		RequestMapping mapping = context.findAnnotationOnBean(beanName, RequestMapping.class);
 		if (mapping != null) {
 			// @RequestMapping found at type level
@@ -124,6 +120,7 @@ public class DefaultAnnotationHandlerMapping extends AbstractDetectingUrlHandler
 				// @RequestMapping specifies paths at type level
 				String[] methodLevelPatterns = determineUrlsForHandlerMethods(handlerType, true);
 				for (String typeLevelPattern : typeLevelPatterns) {
+					//所以路径是以'/'开头的
 					if (!typeLevelPattern.startsWith("/")) {
 						typeLevelPattern = "/" + typeLevelPattern;
 					}
@@ -149,6 +146,7 @@ public class DefaultAnnotationHandlerMapping extends AbstractDetectingUrlHandler
 				return determineUrlsForHandlerMethods(handlerType, false);
 			}
 		}
+		//如果没有@RequestMapping注解 但是有@Controller注解
 		else if (AnnotationUtils.findAnnotation(handlerType, Controller.class) != null) {
 			// @RequestMapping to be introspected at method level
 			return determineUrlsForHandlerMethods(handlerType, false);

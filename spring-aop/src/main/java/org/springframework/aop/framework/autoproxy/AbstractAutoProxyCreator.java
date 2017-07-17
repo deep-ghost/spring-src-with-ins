@@ -16,18 +16,9 @@
 
 package org.springframework.aop.framework.autoproxy;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.AopInfrastructureBean;
@@ -46,6 +37,14 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.util.ClassUtils;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
@@ -268,6 +267,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyConfig
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
+	//
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
 		Object cacheKey = getCacheKey(beanClass, beanName);
 
@@ -275,6 +275,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyConfig
 			if (this.advisedBeans.containsKey(cacheKey)) {
 				return null;
 			}
+			//这里需要注意的是 shouldSkip方法被子类覆盖了 这个很容易忽略
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
@@ -285,6 +286,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyConfig
 		// Suppresses unnecessary default instantiation of the target bean:
 		// The TargetSource will handle target instances in a custom fashion.
 		if (beanName != null) {
+			//todo 这里返回null!!!
 			TargetSource targetSource = getCustomTargetSource(beanClass, beanName);
 			if (targetSource != null) {
 				this.targetSourcedBeans.put(beanName, Boolean.TRUE);
@@ -346,9 +348,12 @@ public abstract class AbstractAutoProxyCreator extends ProxyConfig
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		// 因为寻找切面方法等操作是很浪费时间的操作 所以如果不必操作的话或者已经创建过代理的话 尽量提前返回
+		//已经创建过
 		if (beanName != null && this.targetSourcedBeans.containsKey(beanName)) {
 			return bean;
 		}
+		//本身是切面类
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
@@ -357,10 +362,15 @@ public abstract class AbstractAutoProxyCreator extends ProxyConfig
 			return bean;
 		}
 
-		// Create proxy if we have advice.
+		// 可以看出作者的思路是很清晰的 几句代码概括了要做的事情 然后在方法里面展开
+		// advice advisor pointcut 等之间的名次的区别与联系
+		// advice : action to take at a joinpoint
+		// 1. 寻找适合此bean的切面方法
+		// 2. 创建代理
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			//创建代理对象 java动态代理或者是基于cglib的代理 cglib代理更高效
 			Object proxy = createProxy(bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
 			this.proxyTypes.put(cacheKey, proxy.getClass());
 			return proxy;
@@ -437,6 +447,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyConfig
 	}
 
 	/**
+	 * 创建aop代理
 	 * Create an AOP proxy for the given bean.
 	 * @param beanClass the class of the bean
 	 * @param beanName the name of the bean
@@ -454,6 +465,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyConfig
 		// Copy our properties (proxyTargetClass etc) inherited from ProxyConfig.
 		proxyFactory.copyFrom(this);
 
+		//java动态代理
 		if (!shouldProxyTargetClass(beanClass, beanName)) {
 			// Must allow for introductions; can't just set interfaces to
 			// the target's interfaces only.

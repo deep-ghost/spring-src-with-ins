@@ -17,6 +17,7 @@
 package org.springframework.beans;
 
 /**
+ * something like this: <meta key="" value=""/> or <lookup-method .../>
  * Interface to be implemented by bean metadata elements
  * that carry a configuration source object.
  *

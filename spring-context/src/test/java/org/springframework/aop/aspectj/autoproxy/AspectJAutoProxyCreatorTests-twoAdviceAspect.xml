@@ -7,7 +7,9 @@
 
 	<bean id="aspect" class="test.aspect.TwoAdviceAspect"/>
 
-	<bean id="adrian" class="org.springframework.tests.sample.beans.TestBean" scope="prototype">
+	<bean id="adviceUsingThisJoinPoint" class="org.springframework.aop.aspectj.autoproxy.AdviceUsingThisJoinPoint"/>
+
+	<bean id="adrian" class="org.springframework.tests.sample.beans.TestBean">
 		<property name="name" value="adrian"/>
 		<property name="age" value="34"/>
 	</bean>

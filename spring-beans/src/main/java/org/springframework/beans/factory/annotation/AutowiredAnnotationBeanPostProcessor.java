@@ -16,26 +16,8 @@
 
 package org.springframework.beans.factory.annotation;
 
-import java.beans.PropertyDescriptor;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
@@ -50,18 +32,23 @@ import org.springframework.beans.factory.config.InstantiationAwareBeanPostProces
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.core.GenericTypeResolver;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.Ordered;
-import org.springframework.core.PriorityOrdered;
+import org.springframework.core.*;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
+ * 重要
+ * 由context:annotation-config或者context:component-scan标签注册
+ * 注解注入会在xml注入之前执行 所以都配置的话 会覆盖
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
  * that autowires annotated fields, setter methods and arbitrary config methods.
  * Such members to be injected are detected through a Java 5 annotation: by default,
@@ -78,7 +65,7 @@ import org.springframework.util.StringUtils;
  * the greatest number of dependencies that can be satisfied by matching
  * beans in the Spring container will be chosen. If none of the candidates
  * can be satisfied, then a default constructor (if present) will be used.
- * An annotated constructor does not have to be public.
+ * An annotated constructor does not hataiove to be public.
  *
  * <p>Fields are injected right after construction of a bean, before any
  * config methods are invoked. Such a config field does not have to be public.
@@ -211,11 +198,14 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		}
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 	}
-
-
+	
+	
+	// 执行的时间节点是bean刚刚初始化完 但在属性填充之前
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		if (beanType != null) {
+			//找出所有的字段或者方法上的@Autowired @Value @Inject注解 并保存
 			InjectionMetadata metadata = findAutowiringMetadata(beanName, beanType, null);
+			//加入到BeanDefinition
 			metadata.checkConfigMembers(beanDefinition);
 		}
 	}
@@ -290,8 +280,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	public PropertyValues postProcessPropertyValues(
 			PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName) throws BeansException {
 
+		//从缓存中读取
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+			//
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (Throwable ex) {
@@ -330,6 +322,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
+					//
 					metadata = buildAutowiringMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -337,16 +330,25 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		}
 		return metadata;
 	}
-
+	
+	/**
+	 * 分别对field method做检查 是否存在相应注解
+	 *
+	 * @param clazz
+	 * @return
+	 */
 	private InjectionMetadata buildAutowiringMetadata(Class<?> clazz) {
 		LinkedList<InjectionMetadata.InjectedElement> elements = new LinkedList<InjectionMetadata.InjectedElement>();
 		Class<?> targetClass = clazz;
 
 		do {
 			LinkedList<InjectionMetadata.InjectedElement> currElements = new LinkedList<InjectionMetadata.InjectedElement>();
+			// 循环所有的field
 			for (Field field : targetClass.getDeclaredFields()) {
+				// 寻找@Autowired @Value @Inject注解 只处理一个
 				Annotation ann = findAutowiredAnnotation(field);
 				if (ann != null) {
+					//忽略静态属性的注入
 					if (Modifier.isStatic(field.getModifiers())) {
 						if (logger.isWarnEnabled()) {
 							logger.warn("Autowired annotation is not supported on static fields: " + field);
@@ -357,6 +359,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			}
+			// 循环所有的方法 比如setxxx方法注入
 			for (Method method : targetClass.getDeclaredMethods()) {
 				Annotation ann = null;
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
@@ -389,6 +392,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 
 	private Annotation findAutowiredAnnotation(AccessibleObject ao) {
+		//寻找@Autowired @Value @Inject注解 只处理一个
 		for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
 			Annotation ann = AnnotationUtils.getAnnotation(ao, type);
 			if (ann != null) {
@@ -522,6 +526,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						}
 					}
 				}
+				// 通过反射设置值
 				if (value != null) {
 					ReflectionUtils.makeAccessible(field);
 					field.set(bean, value);

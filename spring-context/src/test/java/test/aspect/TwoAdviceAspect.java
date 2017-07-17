@@ -16,7 +16,9 @@
 
 package test.aspect;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -33,5 +35,10 @@ public class TwoAdviceAspect {
 	@Before("execution(* setAge(int)) && args(newAge)")
 	public void countSet(int newAge) throws Exception {
 		++totalCalls;
+	}
+	
+	@After("execution(* setAge(int))")
+	public void sunmingshuai(JoinPoint jp){
+		System.out.println(jp.toString());
 	}
 }

@@ -38,7 +38,10 @@ import org.springframework.beans.factory.xml.ParserContext;
 class AspectJAutoProxyBeanDefinitionParser implements BeanDefinitionParser {
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		//注册BPP(AnnotationAwareAspectJAutoProxyCreator)
+		//todo 为什么调用的是postProcessAfterInitialization方法
 		AopNamespaceUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(parserContext, element);
+		// 如果有子元素的话 设置属性
 		extendBeanDefinition(element, parserContext);
 		return null;
 	}

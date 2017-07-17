@@ -16,22 +16,8 @@
 
 package org.springframework.web.servlet;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.concurrent.Callable;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextException;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.*;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.context.i18n.LocaleContext;
@@ -61,6 +47,16 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.WebUtils;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
 /**
  * Base servlet for Spring's web framework. Provides integration with
@@ -488,6 +484,7 @@ public abstract class FrameworkServlet extends HttpServletBean {
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
+		//取出contextLoaderListener加载的父容器
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
@@ -518,13 +515,15 @@ public abstract class FrameworkServlet extends HttpServletBean {
 		}
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
+			// 这里就呈现出了容器间的父子结构 contextloaderlistener创建的容器为父容器 dispatcherservlet创建的则为子容器
 			wac = createWebApplicationContext(rootContext);
 		}
 
+		// 加载容器的时候 会调用onApplicationEvent方法
 		if (!this.refreshEventReceived) {
 			// Either the context is not a ConfigurableApplicationContext with refresh
 			// support or the context injected at construction time had already been
-			// refreshed -> trigger initial onRefresh manually here.
+			// refreshed -> tger initial onRefresh manually here.
 			onRefresh(wac);
 		}
 
@@ -636,6 +635,7 @@ public abstract class FrameworkServlet extends HttpServletBean {
 		wac.setServletContext(getServletContext());
 		wac.setServletConfig(getServletConfig());
 		wac.setNamespace(getNamespace());
+		// wac容器创建好的时候 会调用ContextRefreshListener#onApplicationEvent方法 完成默认类的注册
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
 		// The wac environment's #initPropertySources will be called in any case when the context
@@ -928,6 +928,7 @@ public abstract class FrameworkServlet extends HttpServletBean {
 	}
 
 	/**
+	 * todo 参数绑定
 	 * Process this request, publishing an event regardless of the outcome.
 	 * <p>The actual event handling is performed by the abstract
 	 * {@link #doService} template method.
@@ -950,6 +951,7 @@ public abstract class FrameworkServlet extends HttpServletBean {
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			//todo 为什么没有返回值
 			doService(request, response);
 		}
 		catch (ServletException ex) {

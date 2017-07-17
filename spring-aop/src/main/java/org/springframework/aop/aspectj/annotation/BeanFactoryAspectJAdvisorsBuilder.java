@@ -16,18 +16,13 @@
 
 package org.springframework.aop.aspectj.annotation;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.aspectj.lang.reflect.PerClauseKind;
-
 import org.springframework.aop.Advisor;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.util.Assert;
+
+import java.util.*;
 
 /**
  * Helper for retrieving @AspectJ beans from a BeanFactory and building
@@ -87,9 +82,12 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 			if (aspectNames == null) {
 				List<Advisor> advisors = new LinkedList<Advisor>();
 				aspectNames = new LinkedList<String>();
+				// 根据类型取出beanFactory中所有的bean 包括父容器 然后循环判断
+				// todo 这样就可能造成重复加载
 				String[] beanNames =
 						BeanFactoryUtils.beanNamesForTypeIncludingAncestors(this.beanFactory, Object.class, true, false);
 				for (String beanName : beanNames) {
+					// 提供可供扩展的模式匹配
 					if (!isEligibleBean(beanName)) {
 						continue;
 					}
@@ -100,12 +98,16 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 					if (beanType == null) {
 						continue;
 					}
+					// 带有@Aspect 注解 并且不是由ajc编译生成 code-style方式的切面spring aop不处理(在前面已经处理过了)
 					if (this.advisorFactory.isAspect(beanType)) {
 						aspectNames.add(beanName);
+						//包装类
 						AspectMetadata amd = new AspectMetadata(beanType, beanName);
 						if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+							//包装类
 							MetadataAwareAspectInstanceFactory factory =
 									new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+							//将切面类中的所有的切面方法拆解出来
 							List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 							if (this.beanFactory.isSingleton(beanName)) {
 								this.advisorsCache.put(beanName, classAdvisors);

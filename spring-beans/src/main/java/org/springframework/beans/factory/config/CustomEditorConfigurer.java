@@ -106,8 +106,10 @@ public class CustomEditorConfigurer implements BeanFactoryPostProcessor, BeanCla
 
 	private int order = Ordered.LOWEST_PRECEDENCE;  // default: same as non-Ordered
 
+	//spring提供的属性编辑器
 	private PropertyEditorRegistrar[] propertyEditorRegistrars;
 
+	//自定义属性编辑器
 	private Map<String, ?> customEditors;
 
 	private boolean ignoreUnresolvableEditors = false;

@@ -72,10 +72,12 @@ public abstract class AopNamespaceUtils {
 
 	public static void registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
-
+		//注册BPP(AnnotationAwareAspectJAutoProxyCreator)
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		//根据xml配置 设置AnnotationAwareAspectJAutoProxyCreator的proxyTargetClass exposeProxy属性
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+		//注册组件bean 并暴露给外部
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
@@ -103,10 +105,12 @@ public abstract class AopNamespaceUtils {
 
 	private static void useClassProxyingIfNecessary(BeanDefinitionRegistry registry, Element sourceElement) {
 		if (sourceElement != null) {
+			//proxy-target-class true:强制使用CGLIB代理 推荐
 			boolean proxyTargetClass = Boolean.valueOf(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
 			if (proxyTargetClass) {
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
+			//expose-proxy true:暴露代理类 解决某些情况下 代理无法完成的情况
 			boolean exposeProxy = Boolean.valueOf(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
 			if (exposeProxy) {
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
@@ -118,6 +122,7 @@ public abstract class AopNamespaceUtils {
 		if (beanDefinition != null) {
 			BeanComponentDefinition componentDefinition =
 					new BeanComponentDefinition(beanDefinition, AopConfigUtils.AUTO_PROXY_CREATOR_BEAN_NAME);
+			//
 			parserContext.registerComponent(componentDefinition);
 		}
 	}

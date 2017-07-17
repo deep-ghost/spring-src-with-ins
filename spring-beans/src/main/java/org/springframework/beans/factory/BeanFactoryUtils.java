@@ -16,15 +16,11 @@
 
 package org.springframework.beans.factory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.BeansException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
 
 /**
  * Convenience methods operating on bean factories, in particular
@@ -61,6 +57,7 @@ public abstract class BeanFactoryUtils {
 	}
 
 	/**
+	 * 去掉factory-bean的标识&
 	 * Return the actual bean name, stripping out the factory dereference
 	 * prefix (if any, also stripping repeated factory prefixes if found).
 	 * @param name the name of the bean

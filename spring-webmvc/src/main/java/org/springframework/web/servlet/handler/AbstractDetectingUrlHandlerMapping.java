@@ -54,7 +54,9 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 	 */
 	@Override
 	public void initApplicationContext() throws ApplicationContextException {
+		// 初始化拦截器
 		super.initApplicationContext();
+		// 探测handler 即我们的控制器 通过@RequestMapping注解识别
 		detectHandlers();
 	}
 
@@ -70,6 +72,7 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking for URL mappings in application context: " + getApplicationContext());
 		}
+		//默认只在子容器中寻找控制器 所以控制器所在的配置文件需要指定给DispatcherServlet才行
 		String[] beanNames = (this.detectHandlersInAncestorContexts ?
 				BeanFactoryUtils.beanNamesForTypeIncludingAncestors(getApplicationContext(), Object.class) :
 				getApplicationContext().getBeanNamesForType(Object.class));
@@ -79,6 +82,7 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 			String[] urls = determineUrlsForHandler(beanName);
 			if (!ObjectUtils.isEmpty(urls)) {
 				// URL paths found: Let's consider it a handler.
+				// 注册路径与对应的handler的对应关系
 				registerHandler(urls, beanName);
 			}
 			else {

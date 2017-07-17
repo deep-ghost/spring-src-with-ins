@@ -16,11 +16,11 @@
 
 package org.springframework.util;
 
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
-
-import org.junit.Test;
 
 import static org.junit.Assert.*;
 
@@ -326,6 +326,7 @@ public class StringUtilsTests {
 		assertEquals("/../mypath/myfile", StringUtils.cleanPath("/../mypath/myfile"));
 		assertEquals("/mypath/myfile", StringUtils.cleanPath("/a/:b/../../mypath/myfile"));
 		assertEquals("file:///c:/path/to/the%20file.txt", StringUtils.cleanPath("file:///c:/some/../path/to/the%20file.txt"));
+		String pathToUse = StringUtils.cleanPath("classpath*:spring-*.xml");
 	}
 
 	@Test

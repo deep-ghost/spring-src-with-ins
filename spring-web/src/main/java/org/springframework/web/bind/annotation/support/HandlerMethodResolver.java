@@ -86,15 +86,19 @@ public class HandlerMethodResolver {
 			ReflectionUtils.doWithMethods(currentHandlerType, new ReflectionUtils.MethodCallback() {
 				public void doWith(Method method) {
 					Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+					// 桥接方法
 					Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
+					// 方法上有@RequestMapping注解
 					if (isHandlerMethod(specificMethod) &&
 							(bridgedMethod == specificMethod || !isHandlerMethod(bridgedMethod))) {
 						handlerMethods.add(specificMethod);
 					}
+					// 方法上有InitBinder注解
 					else if (isInitBinderMethod(specificMethod) &&
 							(bridgedMethod == specificMethod || !isInitBinderMethod(bridgedMethod))) {
 						initBinderMethods.add(specificMethod);
 					}
+					// 方法上有ModelAttribute注解
 					else if (isModelAttributeMethod(specificMethod) &&
 							(bridgedMethod == specificMethod || !isModelAttributeMethod(bridgedMethod))) {
 						modelAttributeMethods.add(specificMethod);

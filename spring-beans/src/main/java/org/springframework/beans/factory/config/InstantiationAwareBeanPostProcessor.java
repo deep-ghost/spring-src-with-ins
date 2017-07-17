@@ -22,6 +22,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
 
 /**
+ * instantiation: 实例化
+ * initialization: 初始化(init-method or afterPropertiesSet())
+ * 使用场景举例：
+ *  1. 注入策略
+ *  2.
  * Subinterface of {@link BeanPostProcessor} that adds a before-instantiation callback,
  * and a callback after instantiation but before explicit properties are set or
  * autowiring occurs.

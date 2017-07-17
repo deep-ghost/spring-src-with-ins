@@ -23,6 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 可以用在构造器 属性 方法上面 由spring的DI/IOC机制自动完成注入工作
+ * 由BPP完成功能
  * Marks a constructor, field, setter method or config method as to be
  * autowired by Spring's dependency injection facilities.
  *

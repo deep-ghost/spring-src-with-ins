@@ -73,6 +73,7 @@ public class AspectMetadata {
 		Class<?> currClass = aspectClass;
 		AjType ajType = null;
 		while (!currClass.equals(Object.class)) {
+			//包装类
 			AjType ajTypeToCheck = AjTypeSystem.getAjType(currClass);
 			if (ajTypeToCheck.isAspect()) {
 				ajType = ajTypeToCheck;
@@ -87,7 +88,7 @@ public class AspectMetadata {
 		if (this.ajType.getDeclarePrecedence().length > 0) {
 			throw new IllegalArgumentException("DeclarePrecendence not presently supported in Spring AOP");
 		}
-
+		//@Aspect 支持多个类型的切面 较常用的就是SINGLETON了
 		switch (this.ajType.getPerClause().getKind()) {
 			case SINGLETON :
 				this.perClausePointcut = Pointcut.TRUE;

@@ -16,14 +16,9 @@
 
 package org.springframework.aop.aspectj.autoproxy;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 import org.aopalliance.aop.Advice;
 import org.aspectj.util.PartialOrder;
 import org.aspectj.util.PartialOrder.PartialComparable;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.aspectj.AbstractAspectJAdvice;
 import org.springframework.aop.aspectj.AspectJPointcutAdvisor;
@@ -32,6 +27,10 @@ import org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreat
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.core.Ordered;
 import org.springframework.util.ClassUtils;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * {@link org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreator}
@@ -50,6 +49,17 @@ public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProx
 
 
 	/**
+	 * 注意事先已经实现各切面类中切面方法的排序 Around.class Before.class After.class AfterReturning.class AfterThrowing.class
+	 * 由高到低排列
+	 * 排序规则(双重排序):
+	 *  1. 同一个切面类的不同切面方法有相同的权重值
+	 *  2. 同一个切面类的不同切面方法比较的时候 按照如下排序规则
+	 *      1. 如果有一个是After类型(包括:After AfterReturning AfterThrowing) 那么后面一个切面 权重值最高 最晚执行
+	 *      2. 否则 最新声明的切面权重值最高 最新执行
+	 *
+	 *  在切点方法之前 高优先级的先执行 在切点方法之后 高优先级的后执行
+	 *
+	 *  最终局部排序()
 	 * Sort the rest by AspectJ precedence. If two pieces of advice have
 	 * come from the same aspect they will have the same order.
 	 * Advice from the same aspect is then further ordered according to the
